@@ -17,9 +17,9 @@ namespace GiangAsm.Models
 
         public string UserId { get; set; } = null!;
 
-        public AppUser User { get; set; } = null!;
+        public AppUser? User { get; set; } = null!;
 
-        public virtual ICollection<Book> Books { get; set; } = null!;
+        public virtual ICollection<Book>? Books { get; set; } = null!;
 
     }
 }

@@ -11,9 +11,9 @@ namespace GiangAsm.Models
 
         public int StoreId { get; set; }
 
-        public Store Store { get; set; } = null!;
+        public Store? Store { get; set; } = null!;
 
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; } = null!;
+        public virtual ICollection<OrderDetail>? OrderDetails { get; set; } = null!;
 
         public string Title { get; set; } = null!;
 
@@ -27,5 +27,8 @@ namespace GiangAsm.Models
         public double Price { get; set; }
 
         public string Desciption { get; set; } = null!;
+        public string ImgUrl { get; set; } 
+
+        public virtual ICollection<Cart>? Carts { get; set; }
     }
 }

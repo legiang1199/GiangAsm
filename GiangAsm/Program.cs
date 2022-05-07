@@ -27,28 +27,6 @@ builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireCo
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    // Password settings.
-    options.Password.RequireDigit = true; //Password bắt buộc có số ?
-    options.Password.RequireLowercase = true; //Pass bắt buộc có chữ thường
-    options.Password.RequireNonAlphanumeric = true; //Tương tự, tự google
-    options.Password.RequireUppercase = true;
-    options.Password.RequiredLength = 6;    //Độ dài ít nhất cũng phải >= 6 kí tự.
-
-    // User settings.
-    options.User.AllowedUserNameCharacters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._@";
-    options.User.RequireUniqueEmail = false;
-});
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    // Cookie settings
-    options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);  //thời gian cookie hiệu lực
-    options.SlidingExpiration = true;
-});
-
 var config = builder.Configuration;
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.Configure<EmailSenderOptions>(options =>

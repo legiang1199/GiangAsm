@@ -10,12 +10,12 @@ namespace GiangAsm.Models
 
         public string UserId { get; set; } = null!;
 
-        public AppUser User { get; set; } = null!;
+        public AppUser? User { get; set; } = null!;
 
         public DateTime OrderDate { get; set; }
 
         public double Total { get; set; }
 
-        public virtual ICollection<OrderDetail> OrderDetails { get; set; } = null!;
+        public virtual ICollection<OrderDetail>? OrderDetails { get; set; } = null!;
     }
 }
