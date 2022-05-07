@@ -28,10 +28,12 @@ namespace GiangAsm.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Privacy()
         {
+            await _emailSender.SendEmailAsync("legiang1199@gmail.com", "test send mail", "just test");
             return View();
         }
+
         [Authorize(Roles = "Customer")]
         public IActionResult ForCustomerOnly()
         {
