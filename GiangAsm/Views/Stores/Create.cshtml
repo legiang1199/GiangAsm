@@ -1,5 +1,9 @@
 ﻿@model GiangAsm.Models.Store
+@using Microsoft.AspNetCore.Identity
+@using GiangAsm.Areas.Identity.Data
 
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
 @{
     ViewData["Title"] = "Create";
 }
@@ -8,6 +12,10 @@
 
 <h4>Store</h4>
 <hr />
+@*if(SignInManager.IsSignedIn(User))
+{*@
+
+
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
@@ -29,14 +37,19 @@
             </div>
             <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
+                <input asp-for="UserId" class ="form-control" value="@UserManager.GetUserId(User)" readonly/>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
     </div>
-</div>
+</di>
+@*}*@
+@*else
+{
+    <h1>No account</h1>
+}*@
 
 <div>
     <a asp-action="Index">Back to List</a>

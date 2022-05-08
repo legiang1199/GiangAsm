@@ -18,6 +18,10 @@ namespace GiangAsm.Controllers
         private readonly UserContext _context;
         private readonly UserManager<AppUser> _userManager;
 
+        private readonly int maxofpage = 10;
+
+        private readonly int rowsonepage = 4;
+
 
         public BooksController(UserContext context, UserManager<AppUser> userManager)
         {
@@ -87,10 +91,38 @@ namespace GiangAsm.Controllers
 
         [Authorize(Roles = "Seller")]
         // GET: Books
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int id = 0, string searchString = "")
         {
-            var userContext = _context.Book.Include(b => b.Store);
-            return View(await userContext.ToListAsync());
+            var userid = _userManager.GetUserId(HttpContext.User);
+            var storeid = _context.Store.FirstOrDefault(s => s.UserId == userid);
+            if (storeid == null)
+            {
+                TempData["msg"] = "<script>alert('You are seller. Can't get in here.');</script>";
+                return RedirectToAction("Create", "Stores");
+            }
+            ViewData["CurrentFilter"] = searchString;
+            var books = from s in _context.Book
+                        select s;
+            books = books.Include(s => s.Store).ThenInclude(u => u.User)
+                .Where(u => u.Store.User.Id == userid);
+            if (searchString != null)
+            {
+                books = books.Include(s => s.Store).ThenInclude(u => u.User)
+                .Where(u => u.Store.User.Id == userid)
+                .Where(s => s.Title.Contains(searchString) || s.Category.Contains(searchString));
+            }
+            int numOfFilteredStudent = books.Count();
+            ViewBag.NumberOfPages = (int)Math.Ceiling((double)numOfFilteredStudent / rowsonepage);
+            ViewBag.CurrentPage = id;
+            List<Book> studentsList = await books.Skip(id * rowsonepage)
+                .Take(rowsonepage).ToListAsync();
+            if (id > 0)
+            {
+                ViewBag.idpagprev = id - 1;
+            }
+            ViewBag.idpagenext = id + 1;
+            ViewBag.currentPage = id;
+            return View(studentsList);
         }
 
         // GET: Books/Details/5

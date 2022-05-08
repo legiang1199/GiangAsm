@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GiangAsm.Areas.Identity.Data;
 using GiangAsm.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
 namespace GiangAsm.Controllers
@@ -15,18 +16,30 @@ namespace GiangAsm.Controllers
     public class StoresController : Controller
     {
         private readonly UserContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-        public StoresController(UserContext context)
+        public StoresController(UserContext context, UserManager<AppUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         [Authorize(Roles = "Seller")]
         // GET: Stores
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var userContext = _context.Store.Include(s => s.User);
-            return View(await userContext.ToListAsync());
+            string userid = _userManager.GetUserId(HttpContext.User);
+
+            Store User = _context.Store.FirstOrDefault(s => s.UserId == userid);
+            if (User == null)
+            {
+                return View("Views/Stores/Create.cshtml");
+
+            }
+            else
+            {
+                return RedirectToAction("Index", "Books");
+            }
         }
 
         // GET: Stores/Details/5
@@ -51,7 +64,7 @@ namespace GiangAsm.Controllers
         // GET: Stores/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
+            ViewData["UserId"] = _userManager.GetUserId(HttpContext.User);
             return View();
         }
 
@@ -68,7 +81,7 @@ namespace GiangAsm.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
+            ViewData["UserId"] = _userManager.GetUserId(HttpContext.User);
             return View(store);
         }
 
