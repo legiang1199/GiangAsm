@@ -29,65 +29,65 @@ namespace GiangAsm.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> AddToCart(string isbn)
-        {
-            string thisUserId = _userManager.GetUserId(HttpContext.User);
-            Cart myCart = new Cart() { UserId = thisUserId, BookIsbn = isbn };
-            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserId == thisUserId && c.BookIsbn == isbn);
-            //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
-            if (fromDb == null)
-            {
-                _context.Add(myCart);
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction("List");
-        }
-        public async Task<IActionResult> Checkout()
-        {
-            string thisUserId = _userManager.GetUserId(HttpContext.User);
-            List<Cart> myDetailsInCart = await _context.Cart
-                .Where(c => c.UserId == thisUserId)
-                .Include(c => c.Book)
-                .ToListAsync();
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    //Step 1: create an order
-                    Order myOrder = new Order();
-                    myOrder.UserId = thisUserId;
-                    myOrder.OrderDate = DateTime.Now;
-                    myOrder.Total = myDetailsInCart.Select(c => c.Book.Price)
-                        .Aggregate((c1, c2) => c1 + c2);
-                    _context.Add(myOrder);
-                    await _context.SaveChangesAsync();
+        //public async Task<IActionResult> AddToCart(string isbn)
+        //{
+        //    string thisUserId = _userManager.GetUserId(HttpContext.User);
+        //    Cart myCart = new Cart() { UserId = thisUserId, BookIsbn = isbn };
+        //    Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserId == thisUserId && c.BookIsbn == isbn);
+        //    //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
+        //    if (fromDb == null)
+        //    {
+        //        _context.Add(myCart);
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    return RedirectToAction("List");
+        //}
+        //public async Task<IActionResult> Checkout()
+        //{
+        //    string thisUserId = _userManager.GetUserId(HttpContext.User);
+        //    List<Cart> myDetailsInCart = await _context.Cart
+        //        .Where(c => c.UserId == thisUserId)
+        //        .Include(c => c.Book)
+        //        .ToListAsync();
+        //    using (var transaction = _context.Database.BeginTransaction())
+        //    {
+        //        try
+        //        {
+        //            //Step 1: create an order
+        //            Order myOrder = new Order();
+        //            myOrder.UserId = thisUserId;
+        //            myOrder.OrderDate = DateTime.Now;
+        //            myOrder.Total = myDetailsInCart.Select(c => c.Book.Price)
+        //                .Aggregate((c1, c2) => c1 + c2);
+        //            _context.Add(myOrder);
+        //            await _context.SaveChangesAsync();
 
-                    //Step 2: insert all order details by var "myDetailsInCart"
-                    foreach (var item in myDetailsInCart)
-                    {
-                        OrderDetail detail = new OrderDetail()
-                        {
-                            OrderId = myOrder.Id,
-                            BookIsbn = item.BookIsbn,
-                            Quantity = 1
-                        };
-                        _context.Add(detail);
-                    }
-                    await _context.SaveChangesAsync();
+        //            //Step 2: insert all order details by var "myDetailsInCart"
+        //            foreach (var item in myDetailsInCart)
+        //            {
+        //                OrderDetail detail = new OrderDetail()
+        //                {
+        //                    OrderId = myOrder.Id,
+        //                    BookIsbn = item.BookIsbn,
+        //                    Quantity = 1
+        //                };
+        //                _context.Add(detail);
+        //            }
+        //            await _context.SaveChangesAsync();
 
-                    //Step 3: empty/delete the cart we just done for thisUser
-                    _context.Cart.RemoveRange(myDetailsInCart);
-                    await _context.SaveChangesAsync();
-                    transaction.Commit();
-                }
-                catch (DbUpdateException ex)
-                {
-                    transaction.Rollback();
-                    Console.WriteLine("Error occurred in Checkout" + ex);
-                }
-            }
-            return RedirectToAction("Index", "Cart");
-        }
+        //            //Step 3: empty/delete the cart we just done for thisUser
+        //            _context.Cart.RemoveRange(myDetailsInCart);
+        //            await _context.SaveChangesAsync();
+        //            transaction.Commit();
+        //        }
+        //        catch (DbUpdateException ex)
+        //        {
+        //            transaction.Rollback();
+        //            Console.WriteLine("Error occurred in Checkout" + ex);
+        //        }
+        //    }
+        //    return RedirectToAction("Index", "Cart");
+        //}
 
         [Authorize(Roles = "Seller")]
         // GET: Books
@@ -114,7 +114,7 @@ namespace GiangAsm.Controllers
             int numOfFilteredStudent = books.Count();
             ViewBag.NumberOfPages = (int)Math.Ceiling((double)numOfFilteredStudent / rowsonepage);
             ViewBag.CurrentPage = id;
-            List<Book> studentsList = await books.Skip(id * rowsonepage)
+            List<Book> bookList = await books.Skip(id * rowsonepage)
                 .Take(rowsonepage).ToListAsync();
             if (id > 0)
             {
@@ -122,9 +122,14 @@ namespace GiangAsm.Controllers
             }
             ViewBag.idpagenext = id + 1;
             ViewBag.currentPage = id;
-            return View(studentsList);
+            return View(bookList);
         }
-
+        public async Task<IActionResult> DisplayBook(string Isbn)
+        {
+            var book = await _context.Book
+                .FirstOrDefaultAsync(m => m.Isbn == Isbn);
+            return View("Views/Books/BookDetails.cshtml", book);
+        }
         // GET: Books/Details/5
         public async Task<IActionResult> Details(string id)
         {

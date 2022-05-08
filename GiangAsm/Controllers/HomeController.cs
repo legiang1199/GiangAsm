@@ -45,7 +45,10 @@ namespace GiangAsm.Controllers
             ViewBag.idpagenext = id + 1;
             ViewBag.currentPage = id;
             return View(booklist);
+
+
         }
+
         public async Task<IActionResult> Privacy()
         {
             await _emailSender.SendEmailAsync("legiang1199@gmail.com", "test send mail", "just test");
@@ -72,5 +75,40 @@ namespace GiangAsm.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public async Task<IActionResult> SearchBook(int id = 0, string searchString = "")
+        {
+            var userid = _userManager.GetUserId(HttpContext.User);
+            var storeid = _context.Store.FirstOrDefault(s => s.UserId == userid);
+            if (storeid == null)
+            {
+                TempData["msg"] = "<script>alert('You are seller. Can't get in here.');</script>";
+                return RedirectToAction("Create", "Stores");
+            }
+            ViewData["CurrentFilter"] = searchString;
+            var books = from s in _context.Book
+                        select s;
+            books = books.Include(s => s.Store).ThenInclude(u => u.User)
+                .Where(u => u.Store.User.Id == userid);
+            if (searchString != null)
+            {
+                books = books.Include(s => s.Store).ThenInclude(u => u.User)
+                .Where(u => u.Store.User.Id == userid)
+                .Where(s => s.Title.Contains(searchString) || s.Category.Contains(searchString));
+            }
+            int numOfFilteredStudent = books.Count();
+            ViewBag.NumberOfPages = (int)Math.Ceiling((double)numOfFilteredStudent / rowsonepage);
+            ViewBag.CurrentPage = id;
+            List<Book> bookList = await books.Skip(id * rowsonepage)
+                .Take(rowsonepage).ToListAsync();
+            if (id > 0)
+            {
+                ViewBag.idpagprev = id - 1;
+            }
+            ViewBag.idpagenext = id + 1;
+            ViewBag.currentPage = id;
+            return View("Views/Home/Search.cshtml",bookList);
+        }
+
     }
 }
