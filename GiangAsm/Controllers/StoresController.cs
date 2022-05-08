@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GiangAsm.Areas.Identity.Data;
 using GiangAsm.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GiangAsm.Controllers
 {
@@ -20,6 +21,7 @@ namespace GiangAsm.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "Seller")]
         // GET: Stores
         public async Task<IActionResult> Index()
         {

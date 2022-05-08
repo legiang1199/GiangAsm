@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using GiangAsm.Areas.Identity.Data;
 using GiangAsm.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GiangAsm.Controllers
 {
@@ -18,10 +19,10 @@ namespace GiangAsm.Controllers
         private readonly UserManager<AppUser> _userManager;
 
 
-        public BooksController(UserContext context)
+        public BooksController(UserContext context, UserManager<AppUser> userManager)
         {
             _context = context;
-            _userManager = _userManager;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> AddToCart(string isbn)
@@ -84,6 +85,7 @@ namespace GiangAsm.Controllers
             return RedirectToAction("Index", "Cart");
         }
 
+        [Authorize(Roles = "Seller")]
         // GET: Books
         public async Task<IActionResult> Index()
         {
@@ -113,7 +115,9 @@ namespace GiangAsm.Controllers
         // GET: Books/Create
         public IActionResult Create()
         {
-            ViewData["StoreId"] = new SelectList(_context.Store, "Id", "Id");
+            string userid = _userManager.GetUserId(HttpContext.User);
+
+            ViewData["StoreId"] = _context.Store.Where(s => s.UserId == userid).FirstOrDefault().Name;
             return View();
         }
 
@@ -122,44 +126,41 @@ namespace GiangAsm.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Isbn,StoreId,Title,PageNum,Author,Category,Price,Desciption,ImgUrl")] Book book)
+        public async Task<IActionResult> Create([Bind("Isbn,StoreId,Title,PageNum,Author,Category,Price,Desciption")] Book book, IFormFile ImgUrl)
         {
-            if (ModelState.IsValid)
+            var userid = _userManager.GetUserId(HttpContext.User);
+            ViewData["StoreId"] = _context.Store.Where(s => s.UserId == userid).FirstOrDefault().Name;
+
+            try
             {
+                if (ImgUrl == null)
+                {
+                    book.ImgUrl = "defaut.jpg";
+                }
+                else
+                {
+                    string imgName = book.Isbn + Path.GetExtension(ImgUrl.FileName);
+                    string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", imgName);
+                    using (var stream = new FileStream(savePath, FileMode.Create))
+                    {
+                        ImgUrl.CopyTo(stream);
+                    }
+                    book.ImgUrl = imgName;
+                }
+                Store thisStore = _context.Store.Where(s => s.UserId == userid).FirstOrDefault();
+                book.StoreId = thisStore.Id;
                 _context.Add(book);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
+            catch (DbUpdateException)
+            {
+                TempData["msg"] = "<script>alert('You already add this to cart');</script>";
+                return RedirectToAction("Create");
 
-            ViewData["StoreId"] = new SelectList(_context.Store, "Id", "Id", book.StoreId);
-            return View(book);
+            }
         }
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create([Bind("Isbn,Title,Pages,Author,Category,Price,Desc")] Book book, IFormFile image)
-        //{
-        //    if (image != null)
-        //    {
-        //        string imgName = book.Isbn + Path.GetExtension(image.FileName);
-        //        string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", imgName);
-        //        using (var stream = new FileStream(savePath, FileMode.Create))
-        //        {
-        //            image.CopyTo(stream);
-        //        }
-        //        book.ImgUrl = "img/" + imgName;
 
-        //        var thisUserId = _userManager.GetUserId(HttpContext.User);
-        //        Store thisStore = await _context.Store.FirstOrDefaultAsync(s => s.UId == thisUserId);
-        //        book.StoreId = thisStore.Id;
-        //    }
-        //    else
-        //    {
-        //        return View(book);
-        //    }
-        //    _context.Add(book);
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Index));
-        //}
 
         // GET: Books/Edit/5
         public async Task<IActionResult> Edit(string id)
