@@ -13,12 +13,12 @@ using GiangAsm.Areas.Identity.Data;
 
 namespace GiangAsm.Controllers
 {
-    public class OrderDetailController : Controller
+    public class OrderDetailsController : Controller
     {
         private readonly UserContext _context;
         private readonly UserManager<AppUser> _userManager;
 
-        public OrderDetailController(UserContext context, UserManager<AppUser> userManager)
+        public OrderDetailsController(UserContext context, UserManager<AppUser> userManager)
         {
             _context = context;
             _userManager = userManager;
