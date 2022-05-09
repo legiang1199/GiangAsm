@@ -162,35 +162,45 @@ namespace GiangAsm.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Isbn,StoreId,Title,PageNum,Author,Category,Price,Desciption,ImgUrl")] Book book)
+        public async Task<IActionResult> Edit(string id, [Bind("Isbn,StoreId,Title,PageNum,Author,Category,Price,Desciption,ImgUrl")] Book book, IFormFile img)
         {
-            if (id != book.Isbn)
+            try
             {
-                return NotFound();
-            }
 
-            if (ModelState.IsValid)
-            {
-                try
+                if (img == null)
                 {
-                    _context.Update(book);
-                    await _context.SaveChangesAsync();
+                    Book thisProduct = _context.Book.Where(p => p.Isbn == book.Isbn).AsNoTracking().FirstOrDefault();
+                    book.ImgUrl = thisProduct.ImgUrl;
+
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!BookExists(book.Isbn))
+                    string imgName = book.Isbn + Path.GetExtension(img.FileName);
+                    string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", imgName);
+                    using (var stream = new FileStream(savePath, FileMode.Create))
                     {
-                        return NotFound();
+                        img.CopyTo(stream);
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    book.ImgUrl = imgName;
                 }
-                return RedirectToAction(nameof(Index));
+                var userid1 = _userManager.GetUserId(HttpContext.User);
+                Store thisStore = _context.Store.Where(s => s.UserId == userid1).FirstOrDefault();
+                book.StoreId = thisStore.Id;
+                _context.Update(book);
+                await _context.SaveChangesAsync();
             }
-            ViewData["StoreId"] = new SelectList(_context.Store, "Id", "Id", book.StoreId);
-            return View(book);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BookExists(book.Isbn))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Books/Delete/5
