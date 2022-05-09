@@ -27,7 +27,7 @@ namespace GiangAsm.Models
         public double Price { get; set; }
 
         public string Desciption { get; set; } = null!;
-        public string? ImgUrl { get; set; } 
+        public string? ImgUrl { get; set; }
 
         public virtual ICollection<Cart>? Carts { get; set; }
     }
