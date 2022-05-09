@@ -35,7 +35,7 @@ namespace GiangAsm.Controllers
         }
 
         // GET: Carts/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Detail(string id)
         {
             if (id == null)
             {
