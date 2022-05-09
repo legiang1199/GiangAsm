@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
-    Layout = "_UserLayout";
+    Layout = "_UserLayout1";
 }
 
 
@@ -39,7 +39,7 @@
                         </tr>
                     </thead>
                     <tbody class="align-middle">
-                        <form asp-controller="Orders" asp-action="Create">
+                        @*<form asp-controller="Orders" asp-action="Create"*@
                         @foreach (var item in Model)
                         {
                             <tr>
@@ -54,11 +54,12 @@
                                 </td>
                                 <td class="text-center align-middle">$ @(item.Book.Price * item.Quantity) </td>
                                 <td class="text-center align-middle">
-                                    <a asp-action= "Delete" asp-route-Isbn = "@item.BookIsbn" class="btn btn-danger p-3 fs-3 fa-solid fa-trash-can"></a>
+                                    <a asp-action= "Remove" asp-route-Isbn = "@item.BookIsbn" class="btn btn-danger p-3 fs-3 fa-solid fa-trash-can"></a>
+
                                 </td>
                             </tr>
                         }
-                        </form>
+                       @* </form>*@
                     </tbody>
                 </table>
             </div>
@@ -71,7 +72,7 @@
                         <div class="d-flex justify-content-between mb-3 pt-1">
                             <p> Total: @Model.Sum(c => c.Book.Price * c.Quantity)</p>
                         </div>
-                        <a  asp-controller="Cart" asp-action="Checkout" class="btn btn-success p-3 fs-3">Checkout</a>
+                        <a  asp-controller="Carts" asp-action="Checkout" class="btn btn-success p-3 fs-3">Checkout</a>
                     </div>
                 </div>
             </div>

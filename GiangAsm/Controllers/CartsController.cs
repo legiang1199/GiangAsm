@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using GiangAsm.Areas.Identity.Data;
 using GiangAsm.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GiangAsm.Controllers
 {
@@ -27,10 +28,13 @@ namespace GiangAsm.Controllers
         // GET: Carts
         public async Task<IActionResult> Index()
         {
-            var userContext = _context.Cart.Include(c => c.Book).Include(c => c.User);
-            return View(await userContext.ToListAsync());
-            string thisUserId = _userManager.GetUserId(HttpContext.User);
-            return View(_context.Cart.Where(c => c.UserId == thisUserId));
+            var userid = _userManager.GetUserId(HttpContext.User);
+
+            var cartShopContext = _context.Cart.Include(c => c.Book)
+                                                .Include(c => c.User)
+                                                .Where(u => u.UserId == userid);
+
+            return View(await cartShopContext.ToListAsync());
 
         }
 
@@ -162,51 +166,43 @@ namespace GiangAsm.Controllers
         }
 
         // POST: Carts/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        
+        public async Task<IActionResult> Remove(string id)
         {
-            var cart = await _context.Cart.FindAsync(id);
+            var userid = _userManager.GetUserId(HttpContext.User);
+
+            var cart = _context.Cart.Where(s => s.UserId == userid).FirstOrDefault();
             _context.Cart.Remove(cart);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
-        public async Task<IActionResult> AddToCart(int quantity, string isbn)
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> AddToCart(string isbn,int quantity = 1)
         {
             try
             {
 
                 var thisUserId = _userManager.GetUserId(HttpContext.User);
-                if (thisUserId == null)
-                {
-                    return RedirectToAction("Login", "Identity");
-                }
-                Store thisStore = _context.Store.FirstOrDefault(s => s.UserId == thisUserId);
-                if (quantity == null)
-                {
-                    quantity = 1;
-                }
-                if (thisStore != null)
-                {
-                    TempData["msg"] = "<script>alert('You are seller. Can't get in here.');</script>";
-                    return RedirectToAction("Index");
-
-                }
-                else
-                {
+               
+             
+              
+              
+                
+                
+                
                     Cart myCart = new Cart() { UserId = thisUserId, BookIsbn = isbn, Quantity = quantity };
                     Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserId == thisUserId && c.BookIsbn == isbn);
                     //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
                     if (fromDb == null)
                     {
+                        myCart.Quantity = quantity;
                         _context.Add(myCart);
                         await _context.SaveChangesAsync();
 
                     }
                     return RedirectToAction("Index");
 
-                }
+                
             }
             catch (InvalidOperationException)
             {
