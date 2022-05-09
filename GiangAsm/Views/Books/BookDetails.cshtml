@@ -19,13 +19,13 @@
 					<div class="d-flex justify-content-between">
 						<p class="card-text text-dark"><small class="text-muted">Price: @Html.DisplayFor(model => model.Price)</small></p>
 					</div>
-					 <form  asp-controller="Cart" asp-action="AddToCart" method="get">
+					 <form  asp-controller="Carts" asp-action="AddToCart" method="get">
 					<div>
 						<div class="product-quantity">
 							<label class="title-bold">Quantity: </label>
 							<div class="input-group1">
 								<span id="down" class=" btn-input btn-input-down" onclick=" down('0')"><ion-icon name="remove-outline"></ion-icon></span>
-								<input type="text" name = "quantity" id="myNumber" class=" input-number"  />
+								<input type="text" name ="quantity" id="myNumber" class=" input-number"  />
 								<span id="up" class=" btn-input" onclick="up('100')"><ion-icon name="add-outline"></ion-icon></span>
 							</div>
 						</div>

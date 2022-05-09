@@ -183,19 +183,12 @@ namespace GiangAsm.Controllers
             {
 
                 var thisUserId = _userManager.GetUserId(HttpContext.User);
-               
-             
-              
-              
-                
-                
-                
                     Cart myCart = new Cart() { UserId = thisUserId, BookIsbn = isbn, Quantity = quantity };
                     Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserId == thisUserId && c.BookIsbn == isbn);
                     //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
                     if (fromDb == null)
                     {
-                        myCart.Quantity = quantity;
+                       
                         _context.Add(myCart);
                         await _context.SaveChangesAsync();
 

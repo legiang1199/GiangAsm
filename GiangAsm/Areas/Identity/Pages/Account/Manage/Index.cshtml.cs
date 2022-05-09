@@ -56,6 +56,16 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
+            [Required]
+            [DataType(DataType.Text)]
+            [Display(Name = "Address")]
+            public String? Address { get; set; }
+
+            [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Day Of Birth")]
+            public DateTime? DoB { get; set; }
+
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
@@ -70,6 +80,8 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
 
             Input = new InputModel
             {
+                Address = user.Address,
+                DoB = user.DoB,
                 PhoneNumber = phoneNumber
             };
         }
@@ -110,7 +122,17 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
                     return RedirectToPage();
                 }
             }
+            if (Input.DoB != user.DoB)
+            {
+                user.DoB = Input.DoB;
+            }
 
+            if (Input.Address != user.Address)
+            {
+                user.Address = Input.Address;
+            }
+
+            await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
