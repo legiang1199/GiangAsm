@@ -28,7 +28,7 @@ builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireCo
 builder.Services.AddControllersWithViews();
 
 var config = builder.Configuration;
-/*builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.Configure<EmailSenderOptions>(options =>
 {
     options.Host = config["MailSettings:Host"];
@@ -37,7 +37,7 @@ builder.Services.Configure<EmailSenderOptions>(options =>
     options.Pass = config["MailSettings:Pass"];
     options.Name = config["MailSettings:Name"];
     options.Sender = config["MailSettings:User"];
-});*/
+});
 
 
 var app = builder.Build();

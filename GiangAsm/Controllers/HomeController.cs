@@ -27,16 +27,28 @@ namespace GiangAsm.Controllers
 
             _context = context;
         }
-        public async Task<IActionResult> Index(int id = 0)
+        public async Task<IActionResult> Index(int id = 0, string searchString = "")
         {
-            
+
+            var userid = _userManager.GetUserId(HttpContext.User);
+            /* var storeid = _context.Store.FirstOrDefault(s => s.UserId == userid);
+             if (storeid == null)
+             {
+                 TempData["msg"] = "<script>alert('You are seller. Can't get in here.');</script>";
+                 return RedirectToAction("Create", "Stores");
+             }*/
+            ViewData["CurrentFilter"] = searchString;
             var books = from s in _context.Book
                         select s;
-           
-            int numOfFilteredBook = books.Count();
-            ViewBag.NumberOfPages = (int)Math.Ceiling((double)numOfFilteredBook / rowsonepage);
+            if (searchString != null)
+            {
+                books = books.Include(s => s.Store).ThenInclude(u => u.User)
+                .Where(s => s.Title.Contains(searchString) || s.Category.Contains(searchString));
+            }
+            int numOfFilteredStudent = books.Count();
+            ViewBag.NumberOfPages = (int)Math.Ceiling((double)numOfFilteredStudent / rowsonepage);
             ViewBag.CurrentPage = id;
-            List<Book> booklist = await books.Skip(id * rowsonepage)
+            List<Book> bookList = await books.Skip(id * rowsonepage)
                 .Take(rowsonepage).ToListAsync();
             if (id > 0)
             {
@@ -44,7 +56,7 @@ namespace GiangAsm.Controllers
             }
             ViewBag.idpagenext = id + 1;
             ViewBag.currentPage = id;
-            return View(booklist);
+            return View(bookList);
 
 
         }
@@ -79,12 +91,12 @@ namespace GiangAsm.Controllers
         public async Task<IActionResult> SearchBook(int id = 0, string searchString = "")
         {
             var userid = _userManager.GetUserId(HttpContext.User);
-            var storeid = _context.Store.FirstOrDefault(s => s.UserId == userid);
+           /* var storeid = _context.Store.FirstOrDefault(s => s.UserId == userid);
             if (storeid == null)
             {
                 TempData["msg"] = "<script>alert('You are seller. Can't get in here.');</script>";
                 return RedirectToAction("Create", "Stores");
-            }
+            }*/
             ViewData["CurrentFilter"] = searchString;
             var books = from s in _context.Book
                         select s;
@@ -108,6 +120,13 @@ namespace GiangAsm.Controllers
             ViewBag.idpagenext = id + 1;
             ViewBag.currentPage = id;
             return View("Views/Home/Search.cshtml",bookList);
+        }
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> Profile()
+        {
+            var userid = _userManager.GetUserId(HttpContext.User);
+            var bookShopContext = _context.Order.Include(o => o.User).Where(u => u.UserId == userid);
+            return View("Views/Home/Profile.cshtml", await bookShopContext.ToListAsync());
         }
 
     }

@@ -91,58 +91,38 @@ namespace GiangAsm.Controllers
         }
 
         // GET: Carts/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string uid, string bid)
         {
-            if (id == null)
+            /*var thisUserId = _userManager.GetUserId(HttpContext.User);
+            Cart myCart = new Cart() { UserId = thisUserId, BookIsbn = Isbn, Quantity= quantity };
+            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserId == thisUserId && c.BookIsbn == Isbn);*/
+            if (uid == null || bid == null)
             {
                 return NotFound();
             }
 
-            var cart = await _context.Cart.FindAsync(id);
-            if (cart == null)
-            {
-                return NotFound();
-            }
-            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn", cart.BookIsbn);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", cart.UserId);
+            var cart = await _context.Cart
+                .FirstOrDefaultAsync(m => m.UserId == uid && m.BookIsbn == bid);
+            //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
             return View(cart);
+
         }
 
-        // POST: Carts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("UserId,BookIsbn")] Cart cart)
+        public async Task<IActionResult> Edit([Bind("UserId,BookIsbn,Quantity")] Cart cart, int quantity)
         {
-            if (id != cart.UserId)
+            try
             {
-                return NotFound();
-            }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(cart);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CartExists(cart.UserId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                _context.Cart.Update(cart);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn", cart.BookIsbn);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", cart.UserId);
-            return View(cart);
+            catch (DbUpdateConcurrencyException)
+            {
+                return RedirectToAction("Edit", new { uid = cart.UserId, bid = cart.BookIsbn });
+            }
         }
 
         // GET: Carts/Delete/5
@@ -219,8 +199,18 @@ namespace GiangAsm.Controllers
                     Order myOrder = new Order();
                     myOrder.UserId = thisUserId;
                     myOrder.OrderDate = DateTime.Now;
-                    myOrder.Total = myDetailsInCart.Select(c => c.Book.Price)
-                        .Aggregate((c1, c2) => c1 + c2);
+
+                    var total = 0;
+
+                    for (int i = 0; i < myDetailsInCart.Count; i++)
+                    {
+                       total += total+ (myDetailsInCart[i].Quantity * (int)myDetailsInCart[i].Book.Price);
+                    }
+
+
+
+
+                    myOrder.Total = total;
                     _context.Add(myOrder);
                     await _context.SaveChangesAsync();
 
@@ -231,7 +221,7 @@ namespace GiangAsm.Controllers
                         {
                             OrderId = myOrder.Id,
                             BookIsbn = item.BookIsbn,
-                            Quantity = 1
+                            Quantity = item.Quantity,
                         };
                         _context.Add(detail);
                     }

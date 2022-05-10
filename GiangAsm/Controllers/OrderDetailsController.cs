@@ -32,7 +32,9 @@ namespace GiangAsm.Controllers
 
             var orderDetail = from b in _context.OrderDetail select b;
 
-            orderDetail = orderDetail.Include(u => u.Order).Include(b => b.Book)
+            orderDetail = orderDetail.Include(u => u.Order).Include( b => b.Book)
+                .Where(o => o.Book.Store.UserId == userid)
+
                 .Where(f => f.OrderId == id);
             /* List<Order> ordersList = await ordered.Skip(id * _recordsPerPage)
                  .Take(_recordsPerPage).ToListAsync();*/

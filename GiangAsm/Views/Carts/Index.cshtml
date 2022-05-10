@@ -39,27 +39,28 @@
                         </tr>
                     </thead>
                     <tbody class="align-middle">
-                        @*<form asp-controller="Orders" asp-action="Create"*@
+                        
                         @foreach (var item in Model)
-                        {
-                            <tr>
+                            {
+                                  <tr>
                                 <td class="text-center align-middle">@item.Book.Title</td>
                                 <td class="text-center align-middle" style="width: 28%;">
                                     <img src="~/img/@item.Book.ImgUrl" class="img-thumbnail w-25" alt="...">
                                 </td>
                                 <td class="text-center align-middle" style="width: 10%;">
-                                    <div class="col-sm">
-                                        <input readonly type="number" name="@item.BookIsbn" value="@item.Quantity" class="fs-3 form-control text-center">
-                                    </div>
+                                    <p>@item.Quantity</p>
                                 </td>
                                 <td class="text-center align-middle">$ @(item.Book.Price * item.Quantity) </td>
                                 <td class="text-center align-middle">
                                     <a asp-action= "Remove" asp-route-Isbn = "@item.BookIsbn" class="btn btn-danger p-3 fs-3 fa-solid fa-trash-can"></a>
 
                                 </td>
+                                <td class="text-center align-middle">
+                                    <input style="display:none" type="text" name="Isbn" value="@item.BookIsbn" class="fs-3 form-control text-center">
+                                     <a class="btn btn-icon btn-hover btn-sm btn-rounded pull-right" asp-action="Edit" asp-route-uid="@item.UserId" asp-route-bid="@item.BookIsbn">Edit</a>
+                                </td>
                             </tr>
-                        }
-                       @* </form>*@
+                            }
                     </tbody>
                 </table>
             </div>

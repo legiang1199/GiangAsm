@@ -2,24 +2,24 @@
 
 @{
     ViewData["Title"] = "Search";
-    Layout = "_UserLayout";
+    Layout = "_UserLayout1";
 }
 
 
 <h1>Search</h1>
 
-@foreach (var book in Model)
+@foreach (var item in Model)
         {
             <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
                 <div class="card product-item border-0 mb-4">
                     <div class="card-header product-img position-relative overflow-hidden bg-transparent border p-0">
-                        <img src="~/img/@book.ImgUrl" alt="">
+                        <img src="~/img/@item.ImgUrl" alt="">
                     </div>
                     <div>
                     <div class="card-body border-left border-right text-center p-0 pt-4 pb-3">
-                        <h6 class="text-truncate mb-3">@book.Title</h6>
+                        <h6 class="text-truncate mb-3">@item.Title</h6>
                         <div class="d-flex justify-content-center">
-                            <h6>Price: $@book.Price</h6>
+                            <h6>Price: $@item.Price</h6>
                         </div>
                     </div>
                     <div class="card-footer d-flex justify-content-between bg-light border">
