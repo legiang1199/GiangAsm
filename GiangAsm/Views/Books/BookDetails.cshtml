@@ -1,0 +1,40 @@
+﻿@model GiangAsm.Models.Book
+@Html.Raw(TempData["msg"])
+@{
+	ViewData["Title"] = "Index";
+	Layout = "_UserLayout1";
+}
+<div class="card mb-3 mt-3 align-items-center justify-content-center">
+    <h4>Book Detail</h4>
+    <hr />
+<div class="card mb-3 mt-3" style="width: 86%; margin-left: 6%;">
+		<div class="row g-0">
+			<div class="col-md-4">
+				<img src="@("~/img/" + @Model.ImgUrl)" asp-append-version="true" style="max-width :200px,auto" >
+			</div>
+			<div class="col-md-8">
+				<div class="card-body fs-3">
+					<h5 class="card-title fs-2">@Html.DisplayFor(model => model.Title)</h5>
+					<p class="card-text fs-4">@Html.DisplayFor(model => model.Desciption)</p>
+					<div class="d-flex justify-content-between">
+						<p class="card-text text-dark"><small class="text-muted">Price: @Html.DisplayFor(model => model.Price)</small></p>
+					</div>
+					 <form  asp-controller="Carts" asp-action="AddToCart" method="get">
+					<div>
+						<div class="product-quantity">
+							<label class="title-bold">Quantity: </label>
+							<div class="input-group1">
+								<span id="down" class=" btn-input btn-input-down" onclick=" down('0')"><ion-icon name="remove-outline"></ion-icon></span>
+								<input type="text" name ="quantity" id="myNumber" class=" input-number"  />
+								<span id="up" class=" btn-input" onclick="up('100')"><ion-icon name="add-outline"></ion-icon></span>
+							</div>
+						</div>
+						<input style= "display :none"  type="text" name="Isbn" value="@Model.Isbn" />
+						<input type="submit" value="Add to cart" class="btn btn-success fs-3" /> 
+					</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

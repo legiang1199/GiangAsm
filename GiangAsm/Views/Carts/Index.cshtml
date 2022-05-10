@@ -2,42 +2,82 @@
 
 @{
     ViewData["Title"] = "Index";
+    Layout = "_UserLayout1";
 }
 
-<h1>Index</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-    <a asp-controller="Books" asp-action="Checkout">Checkout</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Book)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Book.Isbn)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
+    <!-- Cart End -->
 
-}
-    </tbody>
-</table>
+<div class="container">
+    <h1 class="mt-4">Shopping Cart</h1>
+    @if (Model?.Any() != true)
+    {
+        <div class="container mt-5 border border-dark w-100 p-3 aligns-items-center justify-content-center">
+            <div>
+                <img src="https://th.bing.com/th/id/OIP.79d2YxZK-LyiDLPWiJM08gHaGR?pid=ImgDet&rs=1" class="rounded mx-auto d-block" alt="...">
+            </div>
+            <p class="text-center fs-3">Your cart is empty. Keep shopping to find a book!</p>
+            <div class="">
+                <a class="" asp-controller="Home" asp-action="Index" role="button">Keep shopping</a>
+            </div>
+        </div>
+    }
+    else
+    {
+
+        <div class="container-fluid pt-5">
+        <div class="row px-xl-5">
+            <div class="col-lg-8 table-responsive mb-5">
+                <table class="table table-bordered text-center mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center">Title</th>
+                            <th scope="col" class="text-center">Image</th>
+                            <th scope="col" class="text-center">Quantity</th>
+                            <th scope="col" class="text-center">Price</th>
+                            <th scope="col" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="align-middle">
+                        @*<form asp-controller="Orders" asp-action="Create"*@
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center align-middle">@item.Book.Title</td>
+                                <td class="text-center align-middle" style="width: 28%;">
+                                    <img src="~/img/@item.Book.ImgUrl" class="img-thumbnail w-25" alt="...">
+                                </td>
+                                <td class="text-center align-middle" style="width: 10%;">
+                                    <div class="col-sm">
+                                        <input readonly type="number" name="@item.BookIsbn" value="@item.Quantity" class="fs-3 form-control text-center">
+                                    </div>
+                                </td>
+                                <td class="text-center align-middle">$ @(item.Book.Price * item.Quantity) </td>
+                                <td class="text-center align-middle">
+                                    <a asp-action= "Remove" asp-route-Isbn = "@item.BookIsbn" class="btn btn-danger p-3 fs-3 fa-solid fa-trash-can"></a>
+
+                                </td>
+                            </tr>
+                        }
+                       @* </form>*@
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-secondary mb-5">
+                    <div class="card-header bg-secondary border-0">
+                        <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3 pt-1">
+                            <p> Total: @Model.Sum(c => c.Book.Price * c.Quantity)</p>
+                        </div>
+                        <a  asp-controller="Carts" asp-action="Checkout" class="btn btn-success p-3 fs-3">Checkout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+</div>
