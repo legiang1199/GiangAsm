@@ -6,43 +6,47 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using GiangAsm.Areas.Identity.Data;
+
 using GiangAsm.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
+using GiangAsm.Areas.Identity.Data;
 
-namespace GiangAsm.Controllers
+namespace BookShop.Controllers
 {
-    public class StoresController : Controller
+    public class OrdersController : Controller
     {
         private readonly UserContext _context;
         private readonly UserManager<AppUser> _userManager;
+        private readonly int _recordsPerPage = 5;
 
-        public StoresController(UserContext context, UserManager<AppUser> userManager)
+
+
+        public OrdersController(UserContext context, UserManager<AppUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+
         }
 
-        [Authorize(Roles = "Seller")]
-        // GET: Stores
-        public IActionResult Index()
+        // GET: Orders
+        // Seller history order
+        public async Task<IActionResult> Index(int id = 0)
         {
-            string userid = _userManager.GetUserId(HttpContext.User);
+            var userid = _userManager.GetUserId(HttpContext.User);
 
-            Store User = _context.Store.FirstOrDefault(s => s.UserId == userid);
-            if (User == null)
-            {
-                return View("Views/Stores/Create.cshtml");
+            var ordered = from b in _context.Order select b;
 
-            }
-            else
-            {
-                return RedirectToAction("Index", "Books");
-            }
+            ordered = ordered.Include(u => u.User).Include(r => r.OrderDetails).ThenInclude(d => d.Book).ThenInclude(s => s.Store)
+                .Where(s => s.OrderDetails.Where(f => f.Book.Store.UserId == userid).Any());
+                
+            List<Order> ordersList = await ordered.Skip(id * _recordsPerPage)
+                .Take(_recordsPerPage).ToListAsync();
+
+            return View(ordersList);
         }
 
-        // GET: Stores/Details/5
+        // GET: Orders/Details/5
+        // Customer
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -50,42 +54,44 @@ namespace GiangAsm.Controllers
                 return NotFound();
             }
 
-            var store = await _context.Store
-                .Include(s => s.User)
+            var order = await _context.Order
+                .Include(o => o.User)
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Book)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (store == null)
+            if (order == null)
             {
                 return NotFound();
             }
 
-            return View(store);
+            return View(order);
         }
 
-        // GET: Stores/Create
+        // GET: Orders/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = _userManager.GetUserId(HttpContext.User);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
-        // POST: Stores/Create
+        // POST: Orders/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Address,Slogan,UserId")] Store store)
+        public async Task<IActionResult> Create([Bind("Id,UserId,OrderDate,Total")] Order order)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(store);
+                _context.Add(order);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = _userManager.GetUserId(HttpContext.User);
-            return View(store);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", order.UserId);
+            return View("Views/Orders/Index.cshtml");
         }
 
-        // GET: Stores/Edit/5
+        // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -93,23 +99,23 @@ namespace GiangAsm.Controllers
                 return NotFound();
             }
 
-            var store = await _context.Store.FindAsync(id);
-            if (store == null)
+            var order = await _context.Order.FindAsync(id);
+            if (order == null)
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
-            return View(store);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", order.UserId);
+            return View(order);
         }
 
-        // POST: Stores/Edit/5
+        // POST: Orders/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,Slogan,UserId")] Store store)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,OrderDate,Total")] Order order)
         {
-            if (id != store.Id)
+            if (id != order.Id)
             {
                 return NotFound();
             }
@@ -118,12 +124,12 @@ namespace GiangAsm.Controllers
             {
                 try
                 {
-                    _context.Update(store);
+                    _context.Update(order);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!StoreExists(store.Id))
+                    if (!OrderExists(order.Id))
                     {
                         return NotFound();
                     }
@@ -134,11 +140,11 @@ namespace GiangAsm.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", store.UserId);
-            return View(store);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", order.UserId);
+            return View(order);
         }
 
-        // GET: Stores/Delete/5
+        // GET: Orders/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -146,31 +152,31 @@ namespace GiangAsm.Controllers
                 return NotFound();
             }
 
-            var store = await _context.Store
-                .Include(s => s.User)
+            var order = await _context.Order
+                .Include(o => o.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (store == null)
+            if (order == null)
             {
                 return NotFound();
             }
 
-            return View(store);
+            return View(order);
         }
 
-        // POST: Stores/Delete/5
+        // POST: Orders/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var store = await _context.Store.FindAsync(id);
-            _context.Store.Remove(store);
+            var order = await _context.Order.FindAsync(id);
+            _context.Order.Remove(order);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool StoreExists(int id)
+        private bool OrderExists(int id)
         {
-            return _context.Store.Any(e => e.Id == id);
+            return _context.Order.Any(e => e.Id == id);
         }
     }
 }

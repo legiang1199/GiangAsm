@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create" enctype="multipart/form-data">
+        <form asp-controller="Books" asp-action="Create" enctype="multipart/form-data" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Isbn" class="control-label"></label>
@@ -18,8 +18,8 @@
                 <span asp-validation-for="Isbn" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="StoreId" class="control-label"></label>
-                <select asp-for="StoreId" class ="form-control" asp-items="ViewBag.StoreId"></select>
+                <label asp-for="Store" class="control-label"></label>
+                <p>@ViewBag.StoreId</p>
             </div>
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
@@ -36,9 +36,25 @@
                 <input asp-for="Author" class="form-control" />
                 <span asp-validation-for="Author" class="text-danger"></span>
             </div>
-            <div class="form-group">
+           <div class="form-group">
                 <label asp-for="Category" class="control-label"></label>
-                <input asp-for="Category" class="form-control" />
+                <select asp-for="Category"  class="form-control">
+                    <option value="0">None</option>
+                    <option >Classic</option>
+                    <option >Anthology</option>
+                    <option >Children's</option>
+                    <option >Comic</option>
+                    <option >Drama</option>
+                    <option >Fairytale</option>
+                    <option >Graphic novel</option>
+                    <option >Historical fiction</option>
+                    <option >Horror</option>
+                    <option >Mystery</option>
+                    <option >Romance</option>
+                    <option >Satire</option>
+                    <option >Thriller</option>
+
+                </select>
                 <span asp-validation-for="Category" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -46,15 +62,13 @@
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Desciption" class="control-label"></label>
                 <input asp-for="Desciption" class="form-control" />
                 <span asp-validation-for="Desciption" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ImgUrl" class="control-label"></label>
-                <input asp-for="ImgUrl" class="form-control" />
-                <span asp-validation-for="ImgUrl" class="text-danger"></span>
+             <div class="input-group mb-3">
+                <input asp-for="ImgUrl"  type="file" class="form-control" id="inputGroupFile02">
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
