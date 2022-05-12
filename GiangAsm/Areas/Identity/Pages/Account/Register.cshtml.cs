@@ -110,6 +110,9 @@ namespace GiangAsm.Areas.Identity.Pages.Account
             [Display(Name = "Your Role")]
             public string Role { get; set; }
 
+/*            public DateTime DoB { get; set; }   */
+
+
         }
 
 
@@ -126,6 +129,7 @@ namespace GiangAsm.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
+
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);

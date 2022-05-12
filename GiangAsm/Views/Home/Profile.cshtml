@@ -82,7 +82,7 @@
 						<table class="table table-hover fs-3 aligns-items-center justify-content-center">
 							<thead>
 								<tr>
-									<th scope="col" class="text-center">Code</th>
+									<th scope="col" class="text-center">ID</th>
 									<th scope="col" class="text-center">Mail</th>
 									<th scope="col" class="text-center">Ordered Date</th>
 									<th scope="col" class="text-center">Total Price</th>
@@ -95,7 +95,7 @@
 									<tr>
 										<td class="text-center align-middle">@Html.DisplayFor(modelItem => item.Id)</td>
 										<td class="text-center align-middle">
-											@Html.DisplayFor(modelItem => item.User.UserName)
+											 @item.User.UserName
 										</td>
 										<td class="text-center align-middle" style="width: 28%;">
 											@Html.DisplayFor(modelItem => item.OrderDate)

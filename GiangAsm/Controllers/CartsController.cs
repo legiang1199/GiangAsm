@@ -67,8 +67,8 @@ namespace GiangAsm.Controllers
         // GET: Carts/Create
         public IActionResult Create()
         {
-            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn");
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
+            ViewData["BookIsbn"] = new SelectList(_context.Book, "Isbn", "Isbn"); //??
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id"); //??
             return View();
         }
 
@@ -204,7 +204,7 @@ namespace GiangAsm.Controllers
 
                     for (int i = 0; i < myDetailsInCart.Count; i++)
                     {
-                       total += total+ (myDetailsInCart[i].Quantity * (int)myDetailsInCart[i].Book.Price);
+                       total = total+ (myDetailsInCart[i].Quantity * (int)myDetailsInCart[i].Book.Price);
                     }
 
 
@@ -222,6 +222,7 @@ namespace GiangAsm.Controllers
                             OrderId = myOrder.Id,
                             BookIsbn = item.BookIsbn,
                             Quantity = item.Quantity,
+                            Price = item.Quantity * (int)item.Book.Price,
                         };
                         _context.Add(detail);
                     }
