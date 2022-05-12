@@ -1,0 +1,86 @@
+﻿@model GiangAsm.Models.Order
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Books
+            </th>
+            <th>
+                Quantity
+            </th>
+            <th>
+                Price 1 product
+            </th>
+            <th>
+                Unit Price
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+            @foreach (var detail in Model.OrderDetails)
+            {
+                <tr>
+                    <td>
+                       @detail.Book.Title                      
+                    </td>
+                    <td>
+                       @detail.Quantity                 
+                    </td>
+                    <td>
+                       @detail.Book.Price                 
+                    </td>
+                    <td>
+                      @Math.Round((double)((detail.Quantity * detail.Book.Price) ))                
+                    </td>
+                    <td>
+                        <a asp-controller="Books" asp-action="Details" asp-route-id="@detail.Book.Isbn">Infor Book</a>
+                    </td>
+                </tr>
+            }
+    </tbody>
+</table>
+@*<div>
+    <h4>Order</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.User)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.User.UserName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.OrderDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.OrderDate)
+        </dd>
+        @foreach (var item in Model.OrderDetails)
+        {
+            <dl>
+                <dt class="col-sm-2">
+                    @Html.DisplayFor(modelItem => item.Book.Title)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(modelItem => item.Quantity)
+                </dd>
+            </dl>
+            <dt class="col-sm-2">
+                    Total:
+            </dt>
+            <dd class="col-sm-10">
+                    @(item.Book.Price * item.Quantity)
+            </dd>
+            
+        }
+
+    </dl>
+</div>*@
+

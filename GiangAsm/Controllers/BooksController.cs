@@ -18,6 +18,10 @@ namespace GiangAsm.Controllers
         private readonly UserContext _context;
         private readonly UserManager<AppUser> _userManager;
 
+        private readonly int maxofpage = 10;
+
+        private readonly int rowsonepage = 4;
+
 
         public BooksController(UserContext context, UserManager<AppUser> userManager)
         {
@@ -25,74 +29,48 @@ namespace GiangAsm.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> AddToCart(string isbn)
-        {
-            string thisUserId = _userManager.GetUserId(HttpContext.User);
-            Cart myCart = new Cart() { UserId = thisUserId, BookIsbn = isbn };
-            Cart fromDb = _context.Cart.FirstOrDefault(c => c.UserId == thisUserId && c.BookIsbn == isbn);
-            //if not existing (or null), add it to cart. If already added to Cart before, ignore it.
-            if (fromDb == null)
-            {
-                _context.Add(myCart);
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction("List");
-        }
-        public async Task<IActionResult> Checkout()
-        {
-            string thisUserId = _userManager.GetUserId(HttpContext.User);
-            List<Cart> myDetailsInCart = await _context.Cart
-                .Where(c => c.UserId == thisUserId)
-                .Include(c => c.Book)
-                .ToListAsync();
-            using (var transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    //Step 1: create an order
-                    Order myOrder = new Order();
-                    myOrder.UserId = thisUserId;
-                    myOrder.OrderDate = DateTime.Now;
-                    myOrder.Total = myDetailsInCart.Select(c => c.Book.Price)
-                        .Aggregate((c1, c2) => c1 + c2);
-                    _context.Add(myOrder);
-                    await _context.SaveChangesAsync();
-
-                    //Step 2: insert all order details by var "myDetailsInCart"
-                    foreach (var item in myDetailsInCart)
-                    {
-                        OrderDetail detail = new OrderDetail()
-                        {
-                            OrderId = myOrder.Id,
-                            BookIsbn = item.BookIsbn,
-                            Quantity = 1
-                        };
-                        _context.Add(detail);
-                    }
-                    await _context.SaveChangesAsync();
-
-                    //Step 3: empty/delete the cart we just done for thisUser
-                    _context.Cart.RemoveRange(myDetailsInCart);
-                    await _context.SaveChangesAsync();
-                    transaction.Commit();
-                }
-                catch (DbUpdateException ex)
-                {
-                    transaction.Rollback();
-                    Console.WriteLine("Error occurred in Checkout" + ex);
-                }
-            }
-            return RedirectToAction("Index", "Cart");
-        }
 
         [Authorize(Roles = "Seller")]
         // GET: Books
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int id = 0, string searchString = "")
         {
-            var userContext = _context.Book.Include(b => b.Store);
-            return View(await userContext.ToListAsync());
+            var userid = _userManager.GetUserId(HttpContext.User);
+            var storeid = _context.Store.FirstOrDefault(s => s.UserId == userid);
+            if (storeid == null)
+            {
+                TempData["msg"] = "<script>alert('You are seller. Can't get in here.');</script>";
+                return RedirectToAction("Create", "Stores");
+            }
+            ViewData["CurrentFilter"] = searchString;
+            var books = from s in _context.Book
+                        select s;
+            books = books.Include(s => s.Store).ThenInclude(u => u.User)
+                .Where(u => u.Store.User.Id == userid);
+            if (searchString != null)
+            {
+                books = books.Include(s => s.Store).ThenInclude(u => u.User)
+                .Where(u => u.Store.User.Id == userid)
+                .Where(s => s.Title.Contains(searchString) || s.Category.Contains(searchString));
+            }
+            int numOfFilteredStudent = books.Count();
+            ViewBag.NumberOfPages = (int)Math.Ceiling((double)numOfFilteredStudent / rowsonepage);
+            ViewBag.CurrentPage = id;
+            List<Book> bookList = await books.Skip(id * rowsonepage)
+                .Take(rowsonepage).ToListAsync();
+            if (id > 0)
+            {
+                ViewBag.idpagprev = id - 1;
+            }
+            ViewBag.idpagenext = id + 1;
+            ViewBag.currentPage = id;
+            return View(bookList);
         }
-
+        public async Task<IActionResult> DisplayBook(string Isbn)
+        {
+            var book = await _context.Book
+                .FirstOrDefaultAsync(m => m.Isbn == Isbn);
+            return View("Views/Books/BookDetails.cshtml", book);
+        }
         // GET: Books/Details/5
         public async Task<IActionResult> Details(string id)
         {
@@ -184,35 +162,45 @@ namespace GiangAsm.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Isbn,StoreId,Title,PageNum,Author,Category,Price,Desciption,ImgUrl")] Book book)
+        public async Task<IActionResult> Edit(string id, [Bind("Isbn,StoreId,Title,PageNum,Author,Category,Price,Desciption,ImgUrl")] Book book, IFormFile img)
         {
-            if (id != book.Isbn)
+            try
             {
-                return NotFound();
-            }
 
-            if (ModelState.IsValid)
-            {
-                try
+                if (img == null)
                 {
-                    _context.Update(book);
-                    await _context.SaveChangesAsync();
+                    Book thisProduct = _context.Book.Where(p => p.Isbn == book.Isbn).AsNoTracking().FirstOrDefault();
+                    book.ImgUrl = thisProduct.ImgUrl;
+
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!BookExists(book.Isbn))
+                    string imgName = book.Isbn + Path.GetExtension(img.FileName);
+                    string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img", imgName);
+                    using (var stream = new FileStream(savePath, FileMode.Create))
                     {
-                        return NotFound();
+                        img.CopyTo(stream);
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    book.ImgUrl = imgName;
                 }
-                return RedirectToAction(nameof(Index));
+                var userid1 = _userManager.GetUserId(HttpContext.User);
+                Store thisStore = _context.Store.Where(s => s.UserId == userid1).FirstOrDefault();
+                book.StoreId = thisStore.Id;
+                _context.Update(book);
+                await _context.SaveChangesAsync();
             }
-            ViewData["StoreId"] = new SelectList(_context.Store, "Id", "Id", book.StoreId);
-            return View(book);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BookExists(book.Isbn))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Books/Delete/5
