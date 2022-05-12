@@ -29,6 +29,7 @@ namespace BookShop.Controllers
         }
 
         // GET: Orders
+        // Seller history order
         public async Task<IActionResult> Index(int id = 0)
         {
             var userid = _userManager.GetUserId(HttpContext.User);
@@ -36,7 +37,8 @@ namespace BookShop.Controllers
             var ordered = from b in _context.Order select b;
 
             ordered = ordered.Include(u => u.User).Include(r => r.OrderDetails).ThenInclude(d => d.Book).ThenInclude(s => s.Store)
-                .Where(f => f.OrderDetails.Where(w => w.Book.Store.UserId == userid).Any());
+                .Where(s => s.OrderDetails.Where(f => f.Book.Store.UserId == userid).Any());
+                
             List<Order> ordersList = await ordered.Skip(id * _recordsPerPage)
                 .Take(_recordsPerPage).ToListAsync();
 
@@ -44,6 +46,7 @@ namespace BookShop.Controllers
         }
 
         // GET: Orders/Details/5
+        // Customer
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

@@ -25,6 +25,7 @@ namespace GiangAsm.Controllers
         }
 
         // GET: OrderDetail
+        //Seller table detail order
         public async Task<IActionResult> Index(int? id)
         {
 
@@ -32,17 +33,19 @@ namespace GiangAsm.Controllers
 
             var orderDetail = from b in _context.OrderDetail select b;
 
-            orderDetail = orderDetail.Include(u => u.Order).Include( b => b.Book)
-                .Where(o => o.Book.Store.UserId == userid)
-
-                .Where(f => f.OrderId == id);
+            orderDetail = orderDetail.Include(u => u.Order).Include(b => b.Book)
+            .Where(s => s.Book.Store.UserId == userid)
+            .Where(f => f.OrderId == id);
+         
             /* List<Order> ordersList = await ordered.Skip(id * _recordsPerPage)
                  .Take(_recordsPerPage).ToListAsync();*/
+
 
             return View(orderDetail);
         }
 
         // GET: OrderDetail/Details/5
+        //
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

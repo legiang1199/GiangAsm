@@ -41,6 +41,8 @@ namespace GiangAsm.Controllers
                 TempData["msg"] = "<script>alert('You are seller. Can't get in here.');</script>";
                 return RedirectToAction("Create", "Stores");
             }
+
+            //search
             ViewData["CurrentFilter"] = searchString;
             var books = from s in _context.Book
                         select s;
@@ -52,6 +54,10 @@ namespace GiangAsm.Controllers
                 .Where(u => u.Store.User.Id == userid)
                 .Where(s => s.Title.Contains(searchString) || s.Category.Contains(searchString));
             }
+
+
+
+            //numskip
             int numOfFilteredStudent = books.Count();
             ViewBag.NumberOfPages = (int)Math.Ceiling((double)numOfFilteredStudent / rowsonepage);
             ViewBag.CurrentPage = id;
@@ -153,7 +159,10 @@ namespace GiangAsm.Controllers
             {
                 return NotFound();
             }
-            ViewData["StoreId"] = new SelectList(_context.Store, "Id", "Id", book.StoreId);
+
+            
+            
+            ViewData["StoreId"] = new SelectList (_context.Store, "Id", "Id", book.StoreId);
             return View(book);
         }
 

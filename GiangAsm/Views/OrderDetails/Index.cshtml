@@ -1,8 +1,7 @@
 ﻿@model IEnumerable<GiangAsm.Models.OrderDetail>
 
 @{
-    ViewData["Title"] = "Index";
-    Layout = "_UserLayout1";  
+    ViewData["Title"] = "Index"; 
 }
 
 <h1>Index</h1>
@@ -20,7 +19,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.Book)
             </th>
-            <th></th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -34,6 +35,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Book.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price)
             </td>
             @*<td>
                 @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |

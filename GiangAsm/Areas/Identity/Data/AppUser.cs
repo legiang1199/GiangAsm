@@ -16,5 +16,6 @@ public class AppUser : IdentityUser
     public virtual ICollection<Order>? Orders { get; set; }
     public virtual ICollection<Cart>? Carts { get; set; }
 
+    public String? Fullname { get; set; }
 }
 

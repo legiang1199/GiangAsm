@@ -17,6 +17,7 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
+        
 
         public IndexModel(
             UserManager<AppUser> userManager,
@@ -56,6 +57,7 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
+            
             [Required]
             [DataType(DataType.Text)]
             [Display(Name = "Address")]
@@ -69,12 +71,20 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
+
+            [Required]
+            [DataType(DataType.Text)]
+            [Display(Name ="Full name")]
+
+            public String Fullname { get; set; }
+            
         }
 
         private async Task LoadAsync(AppUser user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            
 
             Username = userName;
 
@@ -82,7 +92,8 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
             {
                 Address = user.Address,
                 DoB = user.DoB,
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber,
+                Fullname= user.Fullname,
             };
         }
 
@@ -132,6 +143,10 @@ namespace GiangAsm.Areas.Identity.Pages.Account.Manage
                 user.Address = Input.Address;
             }
 
+            if (Input.Fullname != user.Fullname)
+            {
+                user.Fullname = Input.Fullname;
+            }
             await _userManager.UpdateAsync(user);
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";

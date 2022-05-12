@@ -9,6 +9,8 @@ using System.Diagnostics;
 
 namespace GiangAsm.Controllers
 {
+
+ 
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -16,9 +18,9 @@ namespace GiangAsm.Controllers
         private readonly UserManager<AppUser> _userManager;
         private UserContext _context;
 
-        private readonly int maxofpage = 10;
+        /*private readonly int maxofpage = 10;*/
 
-        private readonly int rowsonepage = 4;
+        private readonly int rowsonepage = 12;
         public HomeController(ILogger<HomeController> logger, IEmailSender emailSender, UserManager<AppUser> userManager, UserContext context)
         {
             _logger = logger;
@@ -121,6 +123,10 @@ namespace GiangAsm.Controllers
             ViewBag.currentPage = id;
             return View("Views/Home/Search.cshtml",bookList);
         }
+
+
+
+        //customer History order
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> Profile()
         {
